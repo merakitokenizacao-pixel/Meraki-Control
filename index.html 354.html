@@ -1,0 +1,2749 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meraki · Gestão de Projetos</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #0F0E0C;
+    --bg-elev: #16140F;
+    --surface: #1A1816;
+    --surface-hover: #221F1B;
+    --border: #2A2622;
+    --border-strong: #3A342E;
+    --text: #F0EBE3;
+    --text-muted: #8B847B;
+    --text-dim: #5A554F;
+    --accent: #E8B86C;
+    --accent-hover: #F0C57A;
+    --accent-dim: #6B5530;
+    --green: #7FB069;
+    --blue: #6FA8B8;
+    --red: #D67373;
+    --orange: #E0915C;
+    --purple: #B891C4;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Geist', -apple-system, sans-serif;
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100vh;
+  }
+  .serif { font-family: 'Instrument Serif', serif; font-weight: 400; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes scaleIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+  .fade-in { animation: fadeIn 0.3s ease-out; }
+  .slide-in { animation: slideIn 0.3s ease-out; }
+  .scale-in { animation: scaleIn 0.2s ease-out; }
+  .stagger > * { animation: fadeIn 0.4s ease-out backwards; }
+  .stagger > *:nth-child(1) { animation-delay: 0.05s; }
+  .stagger > *:nth-child(2) { animation-delay: 0.10s; }
+  .stagger > *:nth-child(3) { animation-delay: 0.15s; }
+  .stagger > *:nth-child(4) { animation-delay: 0.20s; }
+  .stagger > *:nth-child(5) { animation-delay: 0.25s; }
+  .stagger > *:nth-child(6) { animation-delay: 0.30s; }
+  .stagger > *:nth-child(7) { animation-delay: 0.35s; }
+  .stagger > *:nth-child(8) { animation-delay: 0.40s; }
+
+  .input {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.15s;
+    width: 100%;
+    outline: none;
+  }
+  .input:focus {
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+  .input::placeholder { color: var(--text-dim); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+    cursor: pointer;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); color: #1A1410; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-secondary {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+  }
+  .btn-secondary:hover { background: var(--surface-hover); border-color: var(--border-strong); }
+  .btn-ghost { background: transparent; color: var(--text-muted); }
+  .btn-ghost:hover { background: var(--surface); color: var(--text); }
+  .btn-danger { background: transparent; border-color: var(--border); color: var(--red); }
+  .btn-danger:hover { background: rgba(214, 115, 115, 0.1); border-color: var(--red); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: all 0.15s;
+  }
+  .card-interactive { cursor: pointer; }
+  .card-interactive:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-strong);
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    margin: 1px 0;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.12s;
+    font-weight: 500;
+  }
+  .nav-item:hover { background: var(--surface); color: var(--text); }
+  .nav-item.active { background: var(--surface); color: var(--text); }
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 3px;
+    height: 16px;
+    background: var(--accent);
+    border-radius: 0 3px 3px 0;
+    margin-left: -16px;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--bg-elev);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    animation: fadeIn 0.15s ease-out;
+    padding: 20px;
+  }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 540px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: scaleIn 0.2s ease-out;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .modal-lg { max-width: 720px; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    z-index: 200;
+    animation: fadeIn 0.2s ease-out;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  }
+
+  .auth-bg {
+    background: radial-gradient(ellipse at top, rgba(232, 184, 108, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(184, 145, 196, 0.05) 0%, transparent 50%),
+                var(--bg);
+  }
+
+  .noise::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.015;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .task-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 8px;
+    transition: all 0.12s;
+    cursor: pointer;
+  }
+  .task-row:hover { border-color: var(--border-strong); background: var(--surface-hover); }
+  .task-row.done { opacity: 0.5; }
+  .task-row.done .task-title { text-decoration: line-through; }
+
+  .check {
+    width: 16px; height: 16px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 50%;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .check:hover { border-color: var(--accent); }
+  .check.checked { background: var(--accent); border-color: var(--accent); }
+  .check.checked::after {
+    content: '✓';
+    color: #1A1410;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .proj-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  .kanban-col {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    min-width: 280px;
+    max-width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: calc(100vh - 220px);
+  }
+  .kanban-col.drag-over { background: var(--surface); border-color: var(--accent); }
+  .kanban-col-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .kanban-col-tasks {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 60px;
+  }
+  .kanban-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: grab;
+    transition: all 0.15s;
+  }
+  .kanban-card:hover { border-color: var(--border-strong); background: var(--surface-hover); }
+  .kanban-card.dragging { opacity: 0.4; cursor: grabbing; }
+  .kanban-card:active { cursor: grabbing; }
+
+  .prio-low { color: var(--text-dim); }
+  .prio-medium { color: var(--blue); }
+  .prio-high { color: var(--orange); }
+  .prio-urgent { color: var(--red); }
+
+  .tab {
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  .idea-impact-bar { display: flex; gap: 2px; }
+  .idea-impact-bar > div {
+    width: 12px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+  }
+  .idea-impact-bar > div.fill-impact { background: var(--accent); }
+  .idea-impact-bar > div.fill-effort { background: var(--text-muted); }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .hidden { display: none !important; }
+
+  .md { font-size: 14px; line-height: 1.65; color: var(--text); }
+  .md h1, .md h2, .md h3, .md h4 { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; margin: 1.2em 0 0.5em; }
+  .md h1 { font-size: 1.6em; }
+  .md h2 { font-size: 1.35em; }
+  .md h3 { font-size: 1.15em; }
+  .md p { margin: 0.7em 0; }
+  .md ul, .md ol { padding-left: 1.5em; margin: 0.7em 0; }
+  .md li { margin: 0.25em 0; }
+  .md code { font-family: 'JetBrains Mono', monospace; font-size: 0.88em; background: var(--bg-elev); padding: 1px 5px; border-radius: 4px; color: var(--accent); }
+  .md pre { background: var(--bg-elev); padding: 12px; border-radius: 8px; overflow-x: auto; margin: 0.8em 0; border: 1px solid var(--border); }
+  .md pre code { background: none; padding: 0; color: var(--text); }
+  .md blockquote { border-left: 3px solid var(--accent); padding-left: 12px; margin: 0.8em 0; color: var(--text-muted); font-style: italic; }
+  .md a { color: var(--accent); text-decoration: underline; text-decoration-style: dotted; }
+  .md hr { border: none; border-top: 1px solid var(--border); margin: 1.5em 0; }
+  .md strong { font-weight: 600; color: var(--text); }
+  .md em { font-style: italic; }
+
+  .timeline-item {
+    position: relative;
+    padding-left: 28px;
+    padding-bottom: 28px;
+  }
+  .timeline-item:last-child { padding-bottom: 0; }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 8px; top: 18px; bottom: -10px;
+    width: 1px;
+    background: var(--border);
+  }
+  .timeline-item:last-child::before { display: none; }
+  .timeline-dot {
+    position: absolute;
+    left: 0; top: 6px;
+    width: 17px; height: 17px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid currentColor;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .timeline-dot::after {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .file-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--text);
+    text-decoration: none;
+    transition: all 0.12s;
+    max-width: 100%;
+  }
+  .file-chip:hover { border-color: var(--accent); background: var(--surface); }
+  .file-chip .file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+  .file-chip .file-size { color: var(--text-dim); font-size: 11px; flex-shrink: 0; }
+
+  .drop-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    transition: all 0.15s;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(232, 184, 108, 0.05);
+    color: var(--text);
+  }
+
+  .comment {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+  }
+  .comment-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #1A1410;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .comment-body { flex: 1; min-width: 0; }
+  .comment-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+  .comment-author { font-size: 13px; font-weight: 500; }
+  .comment-time { font-size: 11px; color: var(--text-dim); }
+
+  .cmdk-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    display: flex; justify-content: center;
+    padding-top: 12vh;
+    animation: fadeIn 0.15s ease-out;
+  }
+  .cmdk {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 600px;
+    height: fit-content;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    animation: scaleIn 0.15s ease-out;
+    overflow: hidden;
+  }
+  .cmdk-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    padding: 16px 20px;
+    font-size: 16px;
+    outline: none;
+    font-family: inherit;
+  }
+  .cmdk-results { overflow-y: auto; flex: 1; padding: 8px; }
+  .cmdk-section-label {
+    padding: 10px 12px 4px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .cmdk-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.1s;
+  }
+  .cmdk-item:hover, .cmdk-item.selected { background: var(--surface-hover); }
+  .cmdk-item-meta { font-size: 11px; color: var(--text-dim); margin-left: auto; flex-shrink: 0; }
+  .cmdk-empty { padding: 28px; text-align: center; color: var(--text-muted); font-size: 14px; }
+  .cmdk-hint { padding: 8px 16px; font-size: 11px; color: var(--text-dim); border-top: 1px solid var(--border); display: flex; gap: 16px; }
+  .cmdk-hint kbd {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+  }
+
+  .badge-feature { color: var(--green); border-color: rgba(127,176,105,0.3); }
+  .badge-fix { color: var(--red); border-color: rgba(214,115,115,0.3); }
+  .badge-refactor { color: var(--blue); border-color: rgba(111,168,184,0.3); }
+  .badge-milestone { color: var(--accent); border-color: rgba(232,184,108,0.3); }
+  .badge-docs { color: var(--purple); border-color: rgba(184,145,196,0.3); }
+  .badge-other { color: var(--text-muted); border-color: var(--border); }
+
+  /* Membership avatars */
+  .avatar-stack { display: flex; }
+  .avatar-stack > * { margin-left: -8px; border: 2px solid var(--bg-elev); }
+  .avatar-stack > *:first-child { margin-left: 0; }
+
+  .member-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #1A1410;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .member-avatar-lg {
+    width: 36px; height: 36px;
+    font-size: 13px;
+  }
+
+  /* Role pills */
+  .role-owner { color: var(--accent); border-color: rgba(232,184,108,0.3); }
+  .role-editor { color: var(--blue); border-color: rgba(111,168,184,0.3); }
+  .role-viewer { color: var(--text-muted); border-color: var(--border); }
+
+  /* Member row */
+  .member-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    transition: all 0.12s;
+  }
+  .member-row:hover { border-color: var(--border-strong); }
+  .invite-row {
+    border-style: dashed;
+    opacity: 0.85;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ AUTH SCREEN ============ -->
+<div id="auth" class="auth-bg fixed inset-0 flex items-center justify-center p-6 noise">
+  <div class="w-full max-w-sm scale-in relative">
+    <div class="text-center mb-10">
+      <div class="serif italic text-5xl mb-2" style="color: var(--text)">Meraki</div>
+      <div class="text-sm" style="color: var(--text-muted)">Comando central dos seus projetos</div>
+    </div>
+
+    <div class="card p-7">
+      <div class="flex gap-1 mb-6 p-1 rounded-lg" style="background: var(--bg-elev)">
+        <button id="tab-signin" class="flex-1 py-2 text-sm font-medium rounded-md transition" style="background: var(--surface); color: var(--text)">Entrar</button>
+        <button id="tab-signup" class="flex-1 py-2 text-sm font-medium rounded-md transition" style="color: var(--text-muted)">Criar conta</button>
+      </div>
+
+      <form id="auth-form" class="space-y-3">
+        <div id="name-field" class="hidden">
+          <label class="block text-xs mb-1.5 font-medium" style="color: var(--text-muted)">Nome</label>
+          <input type="text" id="auth-name" class="input" placeholder="Como te chamamos">
+        </div>
+        <div>
+          <label class="block text-xs mb-1.5 font-medium" style="color: var(--text-muted)">E-mail</label>
+          <input type="email" id="auth-email" class="input" placeholder="voce@email.com" required>
+        </div>
+        <div>
+          <label class="block text-xs mb-1.5 font-medium" style="color: var(--text-muted)">Senha</label>
+          <input type="password" id="auth-password" class="input" placeholder="••••••••" required minlength="6">
+        </div>
+
+        <div id="auth-error" class="hidden text-xs px-3 py-2 rounded-md" style="background: rgba(214,115,115,0.1); color: var(--red); border: 1px solid rgba(214,115,115,0.2)"></div>
+
+        <button type="submit" id="auth-submit" class="btn btn-primary w-full mt-2">
+          <span id="auth-submit-text">Entrar</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="hidden h-screen flex">
+
+  <aside class="w-60 border-r flex flex-col" style="background: var(--bg-elev); border-color: var(--border)">
+    <div class="px-5 py-5 border-b" style="border-color: var(--border)">
+      <div class="serif italic text-2xl" style="color: var(--text)">Meraki</div>
+    </div>
+
+    <div class="px-3 pt-3">
+      <button id="btn-cmdk" class="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition" style="background: var(--surface); color: var(--text-muted); border: 1px solid var(--border)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <span>Buscar</span>
+        <span class="ml-auto text-[10px] mono px-1.5 py-0.5 rounded" style="background: var(--bg-elev); color: var(--text-dim); border: 1px solid var(--border)">⌘K</span>
+      </button>
+    </div>
+
+    <nav class="px-3 py-3 flex-1 overflow-y-auto">
+      <div class="px-2 mb-1.5 mono text-[10px] uppercase tracking-wider" style="color: var(--text-dim)">Visão</div>
+      <div id="nav-today" class="nav-item relative" data-route="today">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <span>Hoje</span>
+        <span id="today-count" class="ml-auto text-[10px] mono" style="color: var(--text-dim)"></span>
+      </div>
+      <div id="nav-ideas" class="nav-item relative" data-route="ideas">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.74V17h8v-2.26A7 7 0 0 0 12 2z"/></svg>
+        <span>Ideias</span>
+      </div>
+
+      <div class="px-2 mt-5 mb-1.5 mono text-[10px] uppercase tracking-wider flex items-center justify-between" style="color: var(--text-dim)">
+        <span>Projetos</span>
+        <button id="btn-new-project" class="hover:text-white transition" style="color: var(--text-muted)" title="Novo projeto">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+      <div id="nav-projects"></div>
+    </nav>
+
+    <div class="border-t px-3 py-3" style="border-color: var(--border)">
+      <div class="flex items-center gap-2.5 px-2 py-1.5 rounded-md" style="background: var(--surface)">
+        <div id="user-avatar" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style="background: var(--accent); color: #1A1410"></div>
+        <div class="flex-1 min-w-0">
+          <div id="user-name" class="text-sm font-medium truncate"></div>
+          <div id="user-email" class="text-[11px] truncate" style="color: var(--text-dim)"></div>
+        </div>
+        <button id="btn-logout" class="btn-ghost p-1 rounded" title="Sair">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="flex-1 overflow-y-auto noise relative">
+    <div id="view-content" class="p-8 max-w-6xl mx-auto"></div>
+  </main>
+</div>
+
+<button id="btn-quick-add" class="hidden fixed bottom-6 right-6 w-12 h-12 rounded-full shadow-lg z-40 flex items-center justify-center transition hover:scale-105" style="background: var(--accent); color: #1A1410" title="Nova tarefa (C)">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<div id="modal-root"></div>
+<div id="cmdk-root"></div>
+<div id="toast-root"></div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+// ============================================================================
+// CONFIG
+// ============================================================================
+const SUPABASE_URL = 'https://yyvghvdluabusqenhyxz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmdodmRsdWFidXNxZW5oeXh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxODA1MjgsImV4cCI6MjA5Mzc1NjUyOH0.8Ie4jHl6i6WbWgiox4B2kcunhU60urYsbgIe2ryc6fo';
+const BUCKET = 'attachments';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+marked.setOptions({ breaks: true, gfm: true });
+function renderMarkdown(text) {
+  if (!text) return '';
+  const html = marked.parse(text);
+  return DOMPurify.sanitize(html);
+}
+
+// ============================================================================
+// STATE
+// ============================================================================
+const state = {
+  user: null,
+  profile: null,
+  view: 'today',
+  currentProjectId: null,
+  currentTab: 'tasks',
+  projects: [],
+  projectMembers: {},  // { projectId: [members] }
+  projectInvites: {},  // { projectId: [invites] }
+  myRoleByProject: {}, // { projectId: 'owner' | 'editor' | 'viewer' }
+  tasks: [],
+  ideas: [],
+  notes: [],
+  updates: [],
+  comments: [],
+  attachments: [],
+  authMode: 'signin',
+};
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+const $ = (sel) => document.querySelector(sel);
+const escape = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const STATUS_LABELS = { backlog: 'Backlog', todo: 'A fazer', in_progress: 'Fazendo', review: 'Review', done: 'Feito' };
+const STATUS_COLORS = { backlog: 'var(--text-dim)', todo: 'var(--text-muted)', in_progress: 'var(--blue)', review: 'var(--purple)', done: 'var(--green)' };
+const PRIORITY_LABELS = { low: 'Baixa', medium: 'Média', high: 'Alta', urgent: 'Urgente' };
+const PROJECT_STATUS_LABELS = { planning: 'Planejamento', active: 'Ativo', paused: 'Pausado', archived: 'Arquivado' };
+const UPDATE_TYPE_LABELS = { feature: 'Feature', fix: 'Fix', refactor: 'Refactor', milestone: 'Milestone', docs: 'Docs', other: 'Outro' };
+const UPDATE_TYPE_COLORS = { feature: 'var(--green)', fix: 'var(--red)', refactor: 'var(--blue)', milestone: 'var(--accent)', docs: 'var(--purple)', other: 'var(--text-muted)' };
+const NOTE_CATEGORIES = { general: 'Geral', decisions: 'Decisões', docs: 'Docs', credentials_ref: 'Credenciais (ref)' };
+const NOTE_CAT_COLORS = { general: 'var(--text-muted)', decisions: 'var(--accent)', docs: 'var(--blue)', credentials_ref: 'var(--orange)' };
+const ROLE_LABELS = { owner: 'Dono', editor: 'Editor', viewer: 'Visualizador' };
+const COLORS = ['#E8B86C','#7FB069','#6FA8B8','#D67373','#E0915C','#B891C4','#8FB97D','#C49A6C'];
+
+const todayISO = () => new Date().toISOString().split('T')[0];
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const date = new Date(d);
+  date.setHours(0,0,0,0);
+  const diff = Math.round((date - today) / (1000*60*60*24));
+  if (diff === 0) return 'Hoje';
+  if (diff === 1) return 'Amanhã';
+  if (diff === -1) return 'Ontem';
+  if (diff < 0) return `${Math.abs(diff)}d atrasado`;
+  if (diff < 7) return `Em ${diff}d`;
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
+
+function formatRelative(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = Math.round((now - d) / 1000);
+  if (diff < 60) return 'agora';
+  if (diff < 3600) return `${Math.floor(diff/60)}min atrás`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h atrás`;
+  if (diff < 604800) return `${Math.floor(diff/86400)}d atrás`;
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
+
+function formatBytes(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024*1024) return `${(bytes/1024).toFixed(1)} KB`;
+  return `${(bytes/1024/1024).toFixed(1)} MB`;
+}
+
+function fileIcon(mime) {
+  if (!mime) return '📄';
+  if (mime.startsWith('image/')) return '🖼️';
+  if (mime.startsWith('video/')) return '🎬';
+  if (mime.includes('pdf')) return '📕';
+  if (mime.includes('zip') || mime.includes('rar')) return '📦';
+  if (mime.includes('sheet') || mime.includes('excel') || mime.includes('csv')) return '📊';
+  if (mime.includes('word') || mime.includes('document')) return '📝';
+  return '📄';
+}
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 5) return 'Boa madrugada';
+  if (h < 12) return 'Bom dia';
+  if (h < 18) return 'Boa tarde';
+  return 'Boa noite';
+}
+
+function toast(msg, type = 'default') {
+  const root = $('#toast-root');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  if (type === 'error') el.style.borderColor = 'var(--red)';
+  if (type === 'success') el.style.borderColor = 'var(--green)';
+  el.textContent = msg;
+  root.appendChild(el);
+  setTimeout(() => el.style.opacity = '0', 2200);
+  setTimeout(() => el.remove(), 2500);
+}
+
+function getInitials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
+}
+
+function myRole(projectId) {
+  return state.myRoleByProject[projectId] || null;
+}
+function canEdit(projectId) {
+  const r = myRole(projectId);
+  return r === 'owner' || r === 'editor';
+}
+function isOwner(projectId) {
+  return myRole(projectId) === 'owner';
+}
+
+// ============================================================================
+// AUTH
+// ============================================================================
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    state.user = session.user;
+    await afterLogin();
+  } else {
+    showAuth();
+  }
+
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user && !state.profile) {
+      state.user = session.user;
+      await afterLogin();
+    } else if (event === 'SIGNED_OUT') {
+      location.reload();
+    }
+  });
+}
+
+async function afterLogin() {
+  await loadProfile();
+  await loadAll();
+  showApp();
+  subscribeRealtime();
+  handleRoute();
+}
+
+async function loadProfile() {
+  const { data } = await sb.from('profiles').select('*').eq('id', state.user.id).single();
+  state.profile = data || { full_name: state.user.email?.split('@')[0] };
+}
+
+function showAuth() {
+  $('#auth').classList.remove('hidden');
+  $('#app').classList.add('hidden');
+  $('#btn-quick-add').classList.add('hidden');
+}
+
+function showApp() {
+  $('#auth').classList.add('hidden');
+  $('#app').classList.remove('hidden');
+  $('#btn-quick-add').classList.remove('hidden');
+  $('#user-name').textContent = state.profile?.full_name || state.user.email;
+  $('#user-email').textContent = state.user.email;
+  $('#user-avatar').textContent = getInitials(state.profile?.full_name || state.user.email);
+}
+
+$('#tab-signin').addEventListener('click', () => setAuthMode('signin'));
+$('#tab-signup').addEventListener('click', () => setAuthMode('signup'));
+
+function setAuthMode(mode) {
+  state.authMode = mode;
+  const isSignup = mode === 'signup';
+  $('#name-field').classList.toggle('hidden', !isSignup);
+  $('#auth-submit-text').textContent = isSignup ? 'Criar conta' : 'Entrar';
+  if (isSignup) {
+    $('#tab-signup').style.background = 'var(--surface)';
+    $('#tab-signup').style.color = 'var(--text)';
+    $('#tab-signin').style.background = 'transparent';
+    $('#tab-signin').style.color = 'var(--text-muted)';
+  } else {
+    $('#tab-signin').style.background = 'var(--surface)';
+    $('#tab-signin').style.color = 'var(--text)';
+    $('#tab-signup').style.background = 'transparent';
+    $('#tab-signup').style.color = 'var(--text-muted)';
+  }
+  $('#auth-error').classList.add('hidden');
+}
+
+$('#auth-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = $('#auth-email').value;
+  const password = $('#auth-password').value;
+  const name = $('#auth-name').value;
+  const errEl = $('#auth-error');
+  const btn = $('#auth-submit');
+  errEl.classList.add('hidden');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    if (state.authMode === 'signup') {
+      const { error } = await sb.auth.signUp({
+        email, password,
+        options: { data: { full_name: name } }
+      });
+      if (error) throw error;
+      toast('Conta criada.', 'success');
+    } else {
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    }
+  } catch (err) {
+    errEl.textContent = err.message || 'Erro ao autenticar';
+    errEl.classList.remove('hidden');
+    btn.disabled = false;
+    btn.innerHTML = '<span id="auth-submit-text">' + (state.authMode === 'signup' ? 'Criar conta' : 'Entrar') + '</span>';
+  }
+});
+
+$('#btn-logout').addEventListener('click', async () => {
+  await sb.auth.signOut();
+});
+
+// ============================================================================
+// DATA LOADING
+// ============================================================================
+async function loadAll() {
+  await Promise.all([loadProjects(), loadTasks(), loadIdeas()]);
+}
+
+async function loadProjects() {
+  const { data, error } = await sb.from('projects').select('*').order('created_at', { ascending: true });
+  if (!error) state.projects = data || [];
+
+  // Carrega o role do user em cada projeto
+  if (state.projects.length > 0) {
+    const projectIds = state.projects.map(p => p.id);
+    const { data: members } = await sb.from('project_members')
+      .select('project_id, role')
+      .eq('user_id', state.user.id)
+      .in('project_id', projectIds);
+    state.myRoleByProject = {};
+    (members || []).forEach(m => { state.myRoleByProject[m.project_id] = m.role; });
+  }
+}
+
+async function loadTasks() {
+  const { data, error } = await sb.from('tasks_full').select('*').order('position', { ascending: true });
+  if (!error) state.tasks = data || [];
+}
+
+async function loadIdeas() {
+  const { data, error } = await sb.from('ideas').select('*').order('created_at', { ascending: false });
+  if (!error) state.ideas = data || [];
+}
+
+async function loadNotes(projectId) {
+  const { data, error } = await sb.from('notes').select('*').eq('project_id', projectId).order('updated_at', { ascending: false });
+  if (!error) state.notes = data || [];
+  return state.notes;
+}
+
+async function loadUpdates(projectId) {
+  const { data, error } = await sb.from('project_updates').select('*').eq('project_id', projectId).order('released_at', { ascending: false }).order('created_at', { ascending: false });
+  if (!error) state.updates = data || [];
+  if (state.updates.length > 0) {
+    const ids = state.updates.map(u => u.id);
+    const { data: atts } = await sb.from('attachments').select('*').in('update_id', ids);
+    state.attachments = atts || [];
+  }
+  return state.updates;
+}
+
+async function loadComments(taskId) {
+  const { data, error } = await sb.from('comments').select('*, profiles(full_name)').eq('task_id', taskId).order('created_at', { ascending: true });
+  if (!error) state.comments = data || [];
+  if (state.comments.length > 0) {
+    const ids = state.comments.map(c => c.id);
+    const { data: atts } = await sb.from('attachments').select('*').in('comment_id', ids);
+    state.commentAttachments = atts || [];
+  } else {
+    state.commentAttachments = [];
+  }
+  const { data: taskAtts } = await sb.from('attachments').select('*').eq('task_id', taskId);
+  state.taskAttachments = taskAtts || [];
+  return state.comments;
+}
+
+async function loadMembers(projectId) {
+  const { data: members, error } = await sb.from('project_members')
+    .select('*, profiles(full_name, email, avatar_url)')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: true });
+  if (!error) state.projectMembers[projectId] = members || [];
+
+  const { data: invites } = await sb.from('project_invites')
+    .select('*')
+    .eq('project_id', projectId)
+    .is('accepted_at', null)
+    .order('created_at', { ascending: false });
+  state.projectInvites[projectId] = invites || [];
+
+  return state.projectMembers[projectId];
+}
+
+// ============================================================================
+// MUTATIONS
+// ============================================================================
+async function createProject(payload) {
+  const color = COLORS[state.projects.length % COLORS.length];
+  const { data, error } = await sb.from('projects').insert({ ...payload, owner_id: state.user.id, color }).select().single();
+  if (error) { toast('Erro: ' + error.message, 'error'); return null; }
+  state.projects.push(data);
+  state.myRoleByProject[data.id] = 'owner';
+  toast('Projeto criado', 'success');
+  return data;
+}
+async function updateProject(id, payload) {
+  const { data, error } = await sb.from('projects').update(payload).eq('id', id).select().single();
+  if (error) { toast('Erro: ' + error.message, 'error'); return null; }
+  const idx = state.projects.findIndex(p => p.id === id);
+  if (idx >= 0) state.projects[idx] = data;
+  return data;
+}
+async function deleteProject(id) {
+  const { error } = await sb.from('projects').delete().eq('id', id);
+  if (error) { toast('Erro: ' + error.message, 'error'); return; }
+  state.projects = state.projects.filter(p => p.id !== id);
+  state.tasks = state.tasks.filter(t => t.project_id !== id);
+  toast('Projeto removido', 'success');
+}
+async function createTask(payload) {
+  const { data, error } = await sb.from('tasks').insert({ ...payload, created_by: state.user.id }).select().single();
+  if (error) { toast('Erro: ' + error.message, 'error'); return null; }
+  await loadTasks();
+  toast('Tarefa criada', 'success');
+  return data;
+}
+async function updateTask(id, payload) {
+  const { error } = await sb.from('tasks').update(payload).eq('id', id);
+  if (error) { toast('Erro: ' + error.message, 'error'); return; }
+  await loadTasks();
+}
+async function deleteTask(id) {
+  const { error } = await sb.from('tasks').delete().eq('id', id);
+  if (error) { toast('Erro: ' + error.message, 'error'); return; }
+  state.tasks = state.tasks.filter(t => t.id !== id);
+  toast('Tarefa removida', 'success');
+}
+async function createIdea(payload) {
+  const { data, error } = await sb.from('ideas').insert({ ...payload, created_by: state.user.id }).select().single();
+  if (error) { toast('Erro: ' + error.message, 'error'); return null; }
+  state.ideas.unshift(data);
+  toast('Ideia salva', 'success');
+  return data;
+}
+async function updateIdea(id, payload) {
+  const { data, error } = await sb.from('ideas').update(payload).eq('id', id).select().single();
+  if (error) { toast('Erro: ' + error.message, 'error'); return; }
+  const idx = state.ideas.findIndex(i => i.id === id);
+  if (idx >= 0) state.ideas[idx] = data;
+}
+async function deleteIdea(id) {
+  const { error } = await sb.from('ideas').delete().eq('id', id);
+  if (error) { toast('Erro: ' + error.message, 'error'); return; }
+  state.ideas = state.ideas.filter(i => i.id !== id);
+  toast('Ideia removida', 'success');
+}
+async function createNote(payload) {
+  const { data, error } = await sb.from('notes').insert({ ...payload, created_by: state.user.id }).select().single();
+  if (error) { toast('Erro: ' + error.message, 'error'); return null; }
+  state.notes.unshift(data);
+  toast('Nota criada', 'success');
+  return data;
+}
+async function updateNote(id, payload) {
+  const { data, error } = await sb.from('notes').update(payload).eq('id', id).select().single();
+  if (error) { toast('Erro: ' + error.message, 'error'); return; }
+  const idx = state.notes.findIndex(n => n.id === id);
+  if (idx >= 0) state.notes[idx] = data;
+}
+async function deleteNote(id) {
+  const { error } = await sb.from('notes').delete().eq('id', id);
+  if (error) { toast('Erro: ' + error.message, 'error'); return; }
+  state.notes = state.notes.filter(n => n.id !== id);
+}
+async function createUpdate(payload) {
+  const { data, error } = await sb.from('project_updates').insert({ ...payload, created_by: state.user.id }).select().single();
+  if (error) { toast('Erro: ' + error.message, 'error'); return null; }
+  state.updates.unshift(data);
+  toast('Atualização criada', 'success');
+  return data;
+}
+async function updateUpdate(id, payload) {
+  const { data, error } = await sb.from('project_updates').update(payload).eq('id', id).select().single();
+  if (error) { toast('Erro: ' + error.message, 'error'); return; }
+  const idx = state.updates.findIndex(u => u.id === id);
+  if (idx >= 0) state.updates[idx] = data;
+}
+async function deleteUpdate(id) {
+  const { error } = await sb.from('project_updates').delete().eq('id', id);
+  if (error) { toast('Erro: ' + error.message, 'error'); return; }
+  state.updates = state.updates.filter(u => u.id !== id);
+}
+async function createComment(taskId, content) {
+  const { data, error } = await sb.from('comments').insert({ task_id: taskId, author_id: state.user.id, content }).select('*, profiles(full_name)').single();
+  if (error) { toast('Erro: ' + error.message, 'error'); return null; }
+  state.comments.push(data);
+  return data;
+}
+async function deleteComment(id) {
+  const { error } = await sb.from('comments').delete().eq('id', id);
+  if (error) { toast('Erro: ' + error.message, 'error'); return; }
+  state.comments = state.comments.filter(c => c.id !== id);
+}
+
+// Membership mutations
+async function inviteMember(projectId, email, role) {
+  // Tenta achar usuário existente
+  const { data: existing } = await sb.from('profiles')
+    .select('id, email')
+    .ilike('email', email.trim())
+    .maybeSingle();
+
+  if (existing && existing.id) {
+    // Já é usuário: adiciona direto em project_members
+    const { error } = await sb.from('project_members').insert({
+      project_id: projectId,
+      user_id: existing.id,
+      role,
+      added_by: state.user.id,
+    });
+    if (error) {
+      if (error.code === '23505') {
+        toast('Esse usuário já é membro do projeto', 'error');
+      } else {
+        toast('Erro: ' + error.message, 'error');
+      }
+      return false;
+    }
+    toast('Membro adicionado', 'success');
+    return true;
+  }
+
+  // Não tem conta: cria convite pendente
+  const { error } = await sb.from('project_invites').insert({
+    project_id: projectId,
+    email: email.trim().toLowerCase(),
+    role,
+    invited_by: state.user.id,
+  });
+  if (error) {
+    if (error.code === '23505') {
+      toast('Já existe um convite pra esse email', 'error');
+    } else {
+      toast('Erro: ' + error.message, 'error');
+    }
+    return false;
+  }
+  toast('Convite criado. Quando ele criar conta com esse email, vincula automaticamente.', 'success');
+  return true;
+}
+
+async function changeMemberRole(memberId, newRole) {
+  const { error } = await sb.from('project_members').update({ role: newRole }).eq('id', memberId);
+  if (error) { toast('Erro: ' + error.message, 'error'); return false; }
+  toast('Papel atualizado', 'success');
+  return true;
+}
+
+async function removeMember(memberId) {
+  const { error } = await sb.from('project_members').delete().eq('id', memberId);
+  if (error) { toast('Erro: ' + error.message, 'error'); return false; }
+  toast('Membro removido', 'success');
+  return true;
+}
+
+async function cancelInvite(inviteId) {
+  const { error } = await sb.from('project_invites').delete().eq('id', inviteId);
+  if (error) { toast('Erro: ' + error.message, 'error'); return false; }
+  toast('Convite cancelado', 'success');
+  return true;
+}
+
+async function leaveProject(projectId) {
+  const members = state.projectMembers[projectId] || [];
+  const myMembership = members.find(m => m.user_id === state.user.id);
+  if (!myMembership) return false;
+  const { error } = await sb.from('project_members').delete().eq('id', myMembership.id);
+  if (error) { toast('Erro: ' + error.message, 'error'); return false; }
+  toast('Você saiu do projeto', 'success');
+  return true;
+}
+
+// Storage
+async function uploadFile(file, anchor) {
+  const fileName = `${state.user.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
+  const { error: upErr } = await sb.storage.from(BUCKET).upload(fileName, file);
+  if (upErr) { toast('Erro upload: ' + upErr.message, 'error'); return null; }
+  const { data, error } = await sb.from('attachments').insert({
+    ...anchor,
+    file_name: file.name,
+    file_path: fileName,
+    file_size: file.size,
+    mime_type: file.type,
+    uploaded_by: state.user.id,
+  }).select().single();
+  if (error) { toast('Erro registro: ' + error.message, 'error'); return null; }
+  return data;
+}
+
+function attachmentUrl(filePath) {
+  const { data } = sb.storage.from(BUCKET).getPublicUrl(filePath);
+  return data.publicUrl;
+}
+
+async function deleteAttachment(att) {
+  await sb.storage.from(BUCKET).remove([att.file_path]);
+  await sb.from('attachments').delete().eq('id', att.id);
+}
+
+// ============================================================================
+// REALTIME
+// ============================================================================
+function subscribeRealtime() {
+  sb.channel('public-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, async () => {
+      await loadTasks();
+      renderCurrentView();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, async () => {
+      await loadProjects();
+      renderSidebar();
+      renderCurrentView();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'project_members' }, async () => {
+      await loadProjects();
+      renderSidebar();
+      renderCurrentView();
+    })
+    .subscribe();
+}
+
+// ============================================================================
+// ROUTING
+// ============================================================================
+window.addEventListener('hashchange', handleRoute);
+
+function handleRoute() {
+  const hash = location.hash.slice(1) || 'today';
+  if (hash === 'today') {
+    state.view = 'today';
+  } else if (hash === 'ideas') {
+    state.view = 'ideas';
+  } else if (hash.startsWith('project/')) {
+    state.view = 'project';
+    const parts = hash.split('/');
+    state.currentProjectId = parts[1];
+    state.currentTab = parts[2] || 'tasks';
+  }
+  renderSidebar();
+  renderCurrentView();
+}
+
+function navigate(route) { location.hash = route; }
+
+function renderCurrentView() {
+  if (state.view === 'today') renderToday();
+  else if (state.view === 'project') renderProject();
+  else if (state.view === 'ideas') renderIdeas();
+}
+
+// ============================================================================
+// SIDEBAR
+// ============================================================================
+function renderSidebar() {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  if (state.view === 'today') $('#nav-today').classList.add('active');
+  if (state.view === 'ideas') $('#nav-ideas').classList.add('active');
+
+  const todayTasks = state.tasks.filter(t => isToday(t) && t.status !== 'done');
+  $('#today-count').textContent = todayTasks.length || '';
+
+  const projectsEl = $('#nav-projects');
+  if (state.projects.length === 0) {
+    projectsEl.innerHTML = `<div class="px-2 py-1 text-xs" style="color: var(--text-dim)">Crie seu primeiro projeto</div>`;
+    return;
+  }
+
+  projectsEl.innerHTML = state.projects.map(p => {
+    const taskCount = state.tasks.filter(t => t.project_id === p.id && t.status !== 'done').length;
+    const isActive = state.view === 'project' && state.currentProjectId === p.id;
+    const role = myRole(p.id);
+    const sharedIcon = role && role !== 'owner' ? ' <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline; vertical-align: middle; opacity: 0.5"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>' : '';
+    return `
+      <div class="nav-item relative ${isActive ? 'active' : ''}" data-project-id="${p.id}">
+        <div class="proj-dot" style="background: ${p.color}"></div>
+        <span class="truncate flex-1">${escape(p.name)}${sharedIcon}</span>
+        <span class="text-[10px] mono" style="color: var(--text-dim)">${taskCount || ''}</span>
+      </div>
+    `;
+  }).join('');
+
+  projectsEl.querySelectorAll('[data-project-id]').forEach(el => {
+    el.addEventListener('click', () => navigate('project/' + el.dataset.projectId));
+  });
+}
+
+$('#nav-today').addEventListener('click', () => navigate('today'));
+$('#nav-ideas').addEventListener('click', () => navigate('ideas'));
+
+// ============================================================================
+// TODAY VIEW
+// ============================================================================
+function isToday(task) {
+  const today = todayISO();
+  return task.due_date === today || (task.assignee_id === state.user.id && !task.due_date && task.status !== 'done' && task.status !== 'backlog');
+}
+function isOverdue(task) {
+  if (!task.due_date || task.status === 'done') return false;
+  return task.due_date < todayISO();
+}
+
+function renderToday() {
+  const myTasks = state.tasks.filter(t => t.assignee_id === state.user.id || !t.assignee_id);
+  const todayTasks = myTasks.filter(t => t.due_date === todayISO() && t.status !== 'done');
+  const overdueTasks = myTasks.filter(isOverdue);
+  const inProgress = myTasks.filter(t => t.status === 'in_progress');
+  const noDate = myTasks.filter(t => !t.due_date && t.status !== 'done' && t.status !== 'backlog' && t.assignee_id === state.user.id);
+  const completedToday = state.tasks.filter(t => t.completed_at && t.completed_at.split('T')[0] === todayISO()).length;
+  const name = state.profile?.full_name?.split(' ')[0] || '';
+
+  $('#view-content').innerHTML = `
+    <div class="fade-in">
+      <div class="mb-8">
+        <h1 class="text-4xl mb-1">
+          <span class="serif italic" style="color: var(--text-muted)">${greeting()}${name ? ',' : ''}</span>
+          ${name ? `<span class="font-medium">${escape(name)}</span>` : ''}
+        </h1>
+        <p class="text-sm" style="color: var(--text-muted)">${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+      </div>
+
+      <div class="grid grid-cols-4 gap-3 mb-8 stagger">
+        ${statCard('Pra hoje', todayTasks.length, 'var(--accent)')}
+        ${statCard('Em progresso', inProgress.length, 'var(--blue)')}
+        ${statCard('Atrasadas', overdueTasks.length, overdueTasks.length > 0 ? 'var(--red)' : 'var(--text-muted)')}
+        ${statCard('Concluídas hoje', completedToday, 'var(--green)')}
+      </div>
+
+      ${overdueTasks.length > 0 ? `
+        <section class="mb-8 fade-in">
+          <h2 class="text-xs uppercase tracking-wider mono mb-3 flex items-center gap-2" style="color: var(--red)">
+            <span class="w-1.5 h-1.5 rounded-full" style="background: var(--red)"></span>
+            Atrasadas · ${overdueTasks.length}
+          </h2>
+          <div class="space-y-2">${overdueTasks.map(taskRowHTML).join('')}</div>
+        </section>
+      ` : ''}
+
+      <section class="mb-8">
+        <h2 class="text-xs uppercase tracking-wider mono mb-3" style="color: var(--text-muted)">Hoje</h2>
+        ${todayTasks.length === 0 ? `
+          <div class="card p-6 text-center" style="color: var(--text-muted)">
+            <div class="serif italic text-xl mb-1">Nada pra hoje.</div>
+            <div class="text-xs">Aproveita pra mover o ponteiro num dos projetos.</div>
+          </div>
+        ` : `<div class="space-y-2">${todayTasks.map(taskRowHTML).join('')}</div>`}
+      </section>
+
+      ${inProgress.length > 0 ? `
+        <section class="mb-8">
+          <h2 class="text-xs uppercase tracking-wider mono mb-3" style="color: var(--text-muted)">Em progresso</h2>
+          <div class="space-y-2">${inProgress.map(taskRowHTML).join('')}</div>
+        </section>
+      ` : ''}
+
+      ${noDate.length > 0 ? `
+        <section class="mb-8">
+          <h2 class="text-xs uppercase tracking-wider mono mb-3" style="color: var(--text-muted)">Sem data definida</h2>
+          <div class="space-y-2">${noDate.slice(0, 8).map(taskRowHTML).join('')}</div>
+        </section>
+      ` : ''}
+
+      ${state.projects.length === 0 ? `
+        <div class="empty">
+          <div class="serif italic text-3xl mb-2" style="color: var(--text)">Nenhum projeto ainda</div>
+          <div class="text-sm mb-5" style="color: var(--text-muted)">Comece criando seu primeiro projeto na barra lateral.</div>
+          <button onclick="openProjectModal()" class="btn btn-primary">Criar projeto</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+  attachTaskListeners();
+}
+
+function statCard(label, value, color) {
+  return `
+    <div class="card p-4">
+      <div class="text-xs mb-1" style="color: var(--text-muted)">${label}</div>
+      <div class="text-3xl font-medium mono" style="color: ${color}">${value}</div>
+    </div>
+  `;
+}
+
+function taskRowHTML(task) {
+  const project = state.projects.find(p => p.id === task.project_id);
+  const due = task.due_date ? formatDate(task.due_date) : '';
+  const isOverdueTask = isOverdue(task);
+  return `
+    <div class="task-row ${task.status === 'done' ? 'done' : ''}" data-task-id="${task.id}">
+      <div class="check ${task.status === 'done' ? 'checked' : ''}" data-toggle="${task.id}"></div>
+      <div class="flex-1 min-w-0">
+        <div class="task-title text-sm font-medium truncate">${escape(task.title)}</div>
+        <div class="flex items-center gap-2 mt-0.5 text-[11px]" style="color: var(--text-muted)">
+          ${project ? `<span class="flex items-center gap-1.5"><span class="proj-dot" style="background: ${project.color}; width: 6px; height: 6px"></span>${escape(project.name)}</span>` : ''}
+          ${due ? `<span style="color: ${isOverdueTask ? 'var(--red)' : 'var(--text-muted)'}">· ${due}</span>` : ''}
+          ${task.priority !== 'medium' && task.priority !== 'low' ? `<span class="prio-${task.priority}">· ${PRIORITY_LABELS[task.priority]}</span>` : ''}
+          ${task.comment_count > 0 ? `<span>· 💬 ${task.comment_count}</span>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function attachTaskListeners() {
+  document.querySelectorAll('[data-toggle]').forEach(el => {
+    el.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = el.dataset.toggle;
+      const task = state.tasks.find(t => t.id === id);
+      if (!task) return;
+      if (!canEdit(task.project_id)) {
+        toast('Você só pode visualizar esse projeto', 'error');
+        return;
+      }
+      const newStatus = task.status === 'done' ? 'todo' : 'done';
+      el.classList.toggle('checked');
+      await updateTask(id, { status: newStatus });
+      renderCurrentView();
+    });
+  });
+
+  document.querySelectorAll('[data-task-id]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('[data-toggle]')) return;
+      openTaskModal(el.dataset.taskId);
+    });
+  });
+}
+
+// ============================================================================
+// PROJECT VIEW
+// ============================================================================
+async function renderProject() {
+  const project = state.projects.find(p => p.id === state.currentProjectId);
+  if (!project) {
+    $('#view-content').innerHTML = `<div class="empty"><div class="serif italic text-2xl">Projeto não encontrado</div><div class="text-sm mt-2" style="color: var(--text-muted)">Pode ser que você não tenha acesso ou ele foi removido.</div></div>`;
+    return;
+  }
+
+  if (state.currentTab === 'notes') await loadNotes(project.id);
+  if (state.currentTab === 'updates') await loadUpdates(project.id);
+  if (state.currentTab === 'members') await loadMembers(project.id);
+
+  // Membros pra mostrar no header
+  if (!state.projectMembers[project.id]) await loadMembers(project.id);
+  const members = state.projectMembers[project.id] || [];
+
+  const projectTasks = state.tasks.filter(t => t.project_id === project.id);
+  const role = myRole(project.id);
+  const editable = canEdit(project.id);
+  const owner = isOwner(project.id);
+
+  $('#view-content').innerHTML = `
+    <div class="fade-in">
+      <header class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="proj-dot" style="background: ${project.color}; width: 12px; height: 12px"></div>
+          <span class="pill"><span class="dot" style="background: ${project.color}"></span>${PROJECT_STATUS_LABELS[project.status]}</span>
+          ${role && role !== 'owner' ? `<span class="pill role-${role}">${ROLE_LABELS[role]}</span>` : ''}
+          <div class="avatar-stack ml-2 cursor-pointer" onclick="navigate('project/${project.id}/members')" title="Ver membros">
+            ${members.slice(0, 4).map(m => `<div class="member-avatar" title="${escape(m.profiles?.full_name || m.profiles?.email || '')}">${getInitials(m.profiles?.full_name || m.profiles?.email || 'U')}</div>`).join('')}
+            ${members.length > 4 ? `<div class="member-avatar" style="background: var(--bg-elev); color: var(--text-muted)">+${members.length - 4}</div>` : ''}
+          </div>
+          <div class="ml-auto flex gap-2">
+            ${editable ? `<button class="btn btn-ghost text-xs" onclick="openProjectModal('${project.id}')">Editar</button>` : ''}
+            ${owner ? `<button class="btn btn-danger text-xs" onclick="confirmDeleteProject('${project.id}')">Apagar</button>` : ''}
+            ${!owner ? `<button class="btn btn-ghost text-xs" onclick="confirmLeaveProject('${project.id}')" style="color: var(--text-muted)">Sair</button>` : ''}
+          </div>
+        </div>
+        <h1 class="serif italic text-5xl mb-1">${escape(project.name)}</h1>
+        ${project.description ? `<p class="text-sm max-w-2xl" style="color: var(--text-muted)">${escape(project.description)}</p>` : ''}
+      </header>
+
+      <div class="border-b mb-6 flex" style="border-color: var(--border)">
+        <div class="tab ${state.currentTab === 'tasks' ? 'active' : ''}" data-tab="tasks">Tarefas <span class="mono text-[10px] ml-1" style="color: var(--text-dim)">${projectTasks.length}</span></div>
+        <div class="tab ${state.currentTab === 'updates' ? 'active' : ''}" data-tab="updates">Atualizações</div>
+        <div class="tab ${state.currentTab === 'notes' ? 'active' : ''}" data-tab="notes">Notas</div>
+        <div class="tab ${state.currentTab === 'members' ? 'active' : ''}" data-tab="members">Membros <span class="mono text-[10px] ml-1" style="color: var(--text-dim)">${members.length}</span></div>
+      </div>
+
+      <div id="tab-content"></div>
+    </div>
+  `;
+
+  document.querySelectorAll('[data-tab]').forEach(t => {
+    t.addEventListener('click', () => navigate(`project/${project.id}/${t.dataset.tab}`));
+  });
+
+  if (state.currentTab === 'tasks') renderProjectTasks(project, projectTasks);
+  else if (state.currentTab === 'updates') renderProjectUpdates(project);
+  else if (state.currentTab === 'notes') renderProjectNotes(project);
+  else if (state.currentTab === 'members') renderProjectMembers(project);
+}
+
+function renderProjectTasks(project, projectTasks) {
+  const editable = canEdit(project.id);
+  const cols = ['backlog', 'todo', 'in_progress', 'review', 'done'];
+  $('#tab-content').innerHTML = `
+    <div class="mb-4 flex items-center gap-2">
+      ${editable ? `
+        <button class="btn btn-primary text-xs" onclick="openTaskModal(null, '${project.id}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Nova tarefa
+        </button>
+        <span class="text-xs" style="color: var(--text-dim)">ou pressione <span class="mono px-1.5 py-0.5 rounded" style="background: var(--surface); border: 1px solid var(--border)">C</span> · arraste cards entre colunas</span>
+      ` : `<span class="text-xs" style="color: var(--text-muted)">Você só pode visualizar este projeto</span>`}
+    </div>
+
+    <div class="flex gap-3 overflow-x-auto pb-2">
+      ${cols.map(status => {
+        const tasks = projectTasks.filter(t => t.status === status);
+        return `
+          <div class="kanban-col" data-col-status="${status}">
+            <div class="kanban-col-header">
+              <span style="color: ${STATUS_COLORS[status]}">${STATUS_LABELS[status]}</span>
+              <span class="mono">${tasks.length}</span>
+            </div>
+            <div class="kanban-col-tasks" data-drop="${status}">
+              ${tasks.length === 0 ? `<div class="text-xs py-2 text-center" style="color: var(--text-dim)">—</div>` : tasks.map(t => kanbanCardHTML(t, editable)).join('')}
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  document.querySelectorAll('[data-kanban-task]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (el.classList.contains('dragging')) return;
+      openTaskModal(el.dataset.kanbanTask);
+    });
+    if (editable) {
+      el.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', el.dataset.kanbanTask);
+        el.classList.add('dragging');
+      });
+      el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    }
+  });
+
+  if (editable) {
+    document.querySelectorAll('[data-drop]').forEach(col => {
+      col.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        col.closest('.kanban-col').classList.add('drag-over');
+      });
+      col.addEventListener('dragleave', (e) => {
+        if (!col.contains(e.relatedTarget)) col.closest('.kanban-col').classList.remove('drag-over');
+      });
+      col.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        col.closest('.kanban-col').classList.remove('drag-over');
+        const taskId = e.dataTransfer.getData('text/plain');
+        const newStatus = col.dataset.drop;
+        if (!taskId) return;
+        const task = state.tasks.find(t => t.id === taskId);
+        if (task && task.status !== newStatus) {
+          await updateTask(taskId, { status: newStatus });
+          renderCurrentView();
+        }
+      });
+    });
+  }
+}
+
+function kanbanCardHTML(task, editable) {
+  const due = task.due_date ? formatDate(task.due_date) : '';
+  const isOverdueTask = isOverdue(task);
+  return `
+    <div class="kanban-card" ${editable ? 'draggable="true"' : ''} data-kanban-task="${task.id}">
+      <div class="text-sm font-medium mb-1.5">${escape(task.title)}</div>
+      <div class="flex items-center gap-2 text-[11px]" style="color: var(--text-muted)">
+        ${due ? `<span style="color: ${isOverdueTask ? 'var(--red)' : 'var(--text-muted)'}">${due}</span>` : ''}
+        ${task.priority !== 'medium' ? `<span class="prio-${task.priority}">· ${PRIORITY_LABELS[task.priority]}</span>` : ''}
+        <div class="ml-auto flex items-center gap-2">
+          ${task.comment_count > 0 ? `<span class="flex items-center gap-1"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>${task.comment_count}</span>` : ''}
+          ${task.subtask_count > 0 ? `<span>${task.subtask_done_count}/${task.subtask_count}</span>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderProjectUpdates(project) {
+  const editable = canEdit(project.id);
+  $('#tab-content').innerHTML = `
+    <div class="mb-6">
+      ${editable ? `
+        <button class="btn btn-primary text-xs" onclick="openUpdateModal(null, '${project.id}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Nova atualização
+        </button>
+      ` : ''}
+    </div>
+
+    ${state.updates.length === 0 ? `
+      <div class="empty">
+        <div class="serif italic text-3xl mb-2" style="color: var(--text)">Nenhuma atualização ainda</div>
+        <div class="text-sm max-w-md" style="color: var(--text-muted)">
+          Use atualizações pra registrar marcos do projeto: features novas, fixes, milestones. Pode anexar PDFs detalhados, prints, vídeos. Vira o changelog vivo do produto.
+        </div>
+      </div>
+    ` : `
+      <div class="max-w-3xl">
+        ${state.updates.map(u => updateTimelineHTML(u, editable)).join('')}
+      </div>
+    `}
+  `;
+}
+
+function updateTimelineHTML(u, editable) {
+  const atts = state.attachments.filter(a => a.update_id === u.id);
+  const linkedTasks = (u.linked_task_ids || []).map(id => state.tasks.find(t => t.id === id)).filter(Boolean);
+  const color = UPDATE_TYPE_COLORS[u.update_type];
+  const releasedDate = new Date(u.released_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+  return `
+    <div class="timeline-item" style="color: ${color}">
+      <div class="timeline-dot"></div>
+      <div class="card p-5" style="color: var(--text)">
+        <div class="flex items-start justify-between gap-3 mb-2">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="pill badge-${u.update_type}">${UPDATE_TYPE_LABELS[u.update_type]}</span>
+            <span class="text-xs mono" style="color: var(--text-dim)">${releasedDate}</span>
+          </div>
+          ${editable ? `
+            <div class="flex gap-1">
+              <button class="btn-ghost p-1.5 rounded" onclick="openUpdateModal('${u.id}', '${u.project_id}')" title="Editar">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+              </button>
+            </div>
+          ` : ''}
+        </div>
+
+        <h3 class="text-lg font-medium mb-2">${escape(u.title)}</h3>
+
+        ${u.description ? `<div class="md mb-3">${renderMarkdown(u.description)}</div>` : ''}
+
+        ${atts.length > 0 ? `
+          <div class="flex flex-wrap gap-2 mb-3">
+            ${atts.map(a => `
+              <a href="${attachmentUrl(a.file_path)}" target="_blank" class="file-chip">
+                <span>${fileIcon(a.mime_type)}</span>
+                <span class="file-name">${escape(a.file_name)}</span>
+                <span class="file-size">${formatBytes(a.file_size)}</span>
+              </a>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        ${linkedTasks.length > 0 ? `
+          <div class="mt-3 pt-3 border-t" style="border-color: var(--border)">
+            <div class="text-[10px] uppercase tracking-wider mono mb-2" style="color: var(--text-dim)">Tarefas incluídas</div>
+            <div class="flex flex-wrap gap-1.5">
+              ${linkedTasks.map(t => `<span class="pill" style="cursor: pointer" onclick="openTaskModal('${t.id}')">${escape(t.title)}</span>`).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderProjectNotes(project) {
+  const editable = canEdit(project.id);
+  $('#tab-content').innerHTML = `
+    <div class="mb-4">
+      ${editable ? `
+        <button class="btn btn-primary text-xs" onclick="openNoteModal(null, '${project.id}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Nova nota
+        </button>
+      ` : ''}
+    </div>
+
+    ${state.notes.length === 0 ? `
+      <div class="empty">
+        <div class="serif italic text-2xl mb-2">Sem notas ainda</div>
+        <div class="text-sm" style="color: var(--text-muted)">Use a categoria <span class="serif italic" style="color: var(--accent)">Decisões</span> pra registrar escolhas técnicas. Daqui 6 meses você agradece.</div>
+      </div>
+    ` : `
+      <div class="grid grid-cols-2 gap-3 stagger">
+        ${state.notes.map(n => `
+          <div class="card card-interactive p-4" onclick="openNoteModal('${n.id}', '${project.id}')">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="pill" style="color: ${NOTE_CAT_COLORS[n.category]}; border-color: ${NOTE_CAT_COLORS[n.category]}40">${NOTE_CATEGORIES[n.category]}</span>
+              <span class="text-[10px] mono ml-auto" style="color: var(--text-dim)">${formatDate(n.updated_at)}</span>
+            </div>
+            <div class="font-medium text-sm mb-1.5">${escape(n.title)}</div>
+            <div class="text-xs line-clamp-3" style="color: var(--text-muted)">${escape(n.content?.slice(0, 200) || '—')}</div>
+          </div>
+        `).join('')}
+      </div>
+    `}
+  `;
+}
+
+// ============================================================================
+// PROJECT MEMBERS VIEW
+// ============================================================================
+function renderProjectMembers(project) {
+  const members = state.projectMembers[project.id] || [];
+  const invites = state.projectInvites[project.id] || [];
+  const owner = isOwner(project.id);
+
+  $('#tab-content').innerHTML = `
+    <div class="max-w-2xl">
+      ${owner ? `
+        <div class="card p-4 mb-6">
+          <div class="text-xs mb-2 mono uppercase tracking-wider" style="color: var(--text-dim)">Convidar pessoa</div>
+          <form id="invite-form" class="flex gap-2">
+            <input type="email" id="invite-email" class="input" placeholder="email@exemplo.com" required>
+            <select id="invite-role" class="input" style="width: auto; min-width: 130px">
+              <option value="editor">Editor</option>
+              <option value="viewer">Visualizador</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Convidar</button>
+          </form>
+          <div class="text-[11px] mt-2" style="color: var(--text-dim)">
+            Se a pessoa já tem conta no Meraki, é adicionada na hora. Se não tem, fica um convite pendente que vincula automaticamente quando ela criar conta com esse email.
+          </div>
+        </div>
+      ` : ''}
+
+      <div class="text-[10px] uppercase tracking-wider mono mb-3" style="color: var(--text-dim)">Membros · ${members.length}</div>
+      <div class="space-y-2 mb-6">
+        ${members.map(m => memberRowHTML(m, project.id, owner)).join('')}
+      </div>
+
+      ${invites.length > 0 ? `
+        <div class="text-[10px] uppercase tracking-wider mono mb-3" style="color: var(--text-dim)">Convites pendentes · ${invites.length}</div>
+        <div class="space-y-2">
+          ${invites.map(i => inviteRowHTML(i, owner)).join('')}
+        </div>
+      ` : ''}
+
+      ${owner && members.length === 1 ? `
+        <div class="card p-4 mt-6 text-center text-xs" style="color: var(--text-muted)">
+          💡 Convide alguém pra começar a colaborar.
+        </div>
+      ` : ''}
+    </div>
+  `;
+
+  if (owner) {
+    $('#invite-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = $('#invite-email').value;
+      const role = $('#invite-role').value;
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>';
+      const ok = await inviteMember(project.id, email, role);
+      if (ok) {
+        $('#invite-email').value = '';
+        await loadMembers(project.id);
+        renderCurrentView();
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'Convidar';
+      }
+    });
+  }
+}
+
+function memberRowHTML(m, projectId, canManage) {
+  const isMe = m.user_id === state.user.id;
+  const name = m.profiles?.full_name || m.profiles?.email || 'Sem nome';
+  const email = m.profiles?.email || '';
+  return `
+    <div class="member-row">
+      <div class="member-avatar member-avatar-lg">${getInitials(name)}</div>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-medium truncate">${escape(name)}${isMe ? ' <span class="text-[11px]" style="color: var(--text-dim)">(você)</span>' : ''}</div>
+        <div class="text-[11px] truncate" style="color: var(--text-muted)">${escape(email)}</div>
+      </div>
+      ${canManage && m.role !== 'owner' ? `
+        <select onchange="handleRoleChange('${m.id}', this.value, '${projectId}')" class="input" style="width: auto; padding: 6px 10px; font-size: 12px">
+          <option value="editor" ${m.role === 'editor' ? 'selected' : ''}>Editor</option>
+          <option value="viewer" ${m.role === 'viewer' ? 'selected' : ''}>Visualizador</option>
+        </select>
+        <button class="btn-ghost p-1.5 rounded" onclick="handleRemoveMember('${m.id}', '${projectId}')" title="Remover" style="color: var(--red)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      ` : `<span class="pill role-${m.role}">${ROLE_LABELS[m.role]}</span>`}
+    </div>
+  `;
+}
+
+function inviteRowHTML(i, canManage) {
+  return `
+    <div class="member-row invite-row">
+      <div class="member-avatar member-avatar-lg" style="background: var(--bg-elev); color: var(--text-muted); border: 1px dashed var(--border-strong)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm truncate" style="color: var(--text-muted)">${escape(i.email)}</div>
+        <div class="text-[11px]" style="color: var(--text-dim)">Convite pendente · ${formatRelative(i.created_at)}</div>
+      </div>
+      <span class="pill role-${i.role}">${ROLE_LABELS[i.role]}</span>
+      ${canManage ? `
+        <button class="btn-ghost p-1.5 rounded" onclick="handleCancelInvite('${i.id}')" title="Cancelar convite" style="color: var(--red)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      ` : ''}
+    </div>
+  `;
+}
+
+async function handleRoleChange(memberId, newRole, projectId) {
+  await changeMemberRole(memberId, newRole);
+  await loadMembers(projectId);
+  renderCurrentView();
+}
+
+async function handleRemoveMember(memberId, projectId) {
+  if (!confirm('Remover esse membro do projeto?')) return;
+  await removeMember(memberId);
+  await loadMembers(projectId);
+  renderCurrentView();
+}
+
+async function handleCancelInvite(inviteId) {
+  if (!confirm('Cancelar esse convite?')) return;
+  await cancelInvite(inviteId);
+  await loadMembers(state.currentProjectId);
+  renderCurrentView();
+}
+
+async function confirmLeaveProject(projectId) {
+  if (!confirm('Sair desse projeto? Você perde o acesso. Pra voltar, alguém precisa te convidar de novo.')) return;
+  const ok = await leaveProject(projectId);
+  if (ok) {
+    await loadProjects();
+    navigate('today');
+  }
+}
+
+// ============================================================================
+// IDEAS VIEW
+// ============================================================================
+function renderIdeas() {
+  const grouped = {
+    parked: state.ideas.filter(i => i.status === 'parked'),
+    considering: state.ideas.filter(i => i.status === 'considering'),
+    promoted: state.ideas.filter(i => i.status === 'promoted'),
+  };
+
+  $('#view-content').innerHTML = `
+    <div class="fade-in">
+      <header class="mb-6 flex items-end justify-between">
+        <div>
+          <h1 class="serif italic text-5xl mb-1">Ideias</h1>
+          <p class="text-sm" style="color: var(--text-muted)">Onde nasce o próximo projeto. Suas ideias são privadas.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openIdeaModal()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Nova ideia
+        </button>
+      </header>
+
+      ${state.ideas.length === 0 ? `
+        <div class="empty">
+          <div class="serif italic text-3xl mb-2">Parking lot vazio</div>
+          <div class="text-sm" style="color: var(--text-muted)">A primeira ideia que vier, joga aqui antes que esqueça.</div>
+        </div>
+      ` : `
+        ${ideaSection('Considerando', grouped.considering, 'var(--accent)')}
+        ${ideaSection('No estacionamento', grouped.parked, 'var(--text-muted)')}
+        ${grouped.promoted.length > 0 ? ideaSection('Viraram projeto', grouped.promoted, 'var(--green)') : ''}
+      `}
+    </div>
+  `;
+}
+
+function ideaSection(title, ideas, color) {
+  if (ideas.length === 0) return '';
+  return `
+    <section class="mb-8">
+      <h2 class="text-xs uppercase tracking-wider mono mb-3 flex items-center gap-2" style="color: ${color}">
+        <span class="w-1.5 h-1.5 rounded-full" style="background: ${color}"></span>
+        ${title} · ${ideas.length}
+      </h2>
+      <div class="grid grid-cols-2 gap-3 stagger">
+        ${ideas.map(ideaCardHTML).join('')}
+      </div>
+    </section>
+  `;
+}
+
+function ideaCardHTML(idea) {
+  return `
+    <div class="card card-interactive p-4" onclick="openIdeaModal('${idea.id}')">
+      <div class="font-medium text-sm mb-1.5">${escape(idea.title)}</div>
+      ${idea.description ? `<div class="text-xs mb-3 line-clamp-2" style="color: var(--text-muted)">${escape(idea.description)}</div>` : ''}
+      <div class="flex items-center gap-3 text-[11px]" style="color: var(--text-muted)">
+        <div class="flex items-center gap-1.5">
+          <span>Impacto</span>
+          <div class="idea-impact-bar">
+            ${[1,2,3,4,5].map(i => `<div class="${i <= (idea.impact||0) ? 'fill-impact' : ''}"></div>`).join('')}
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span>Esforço</span>
+          <div class="idea-impact-bar">
+            ${[1,2,3,4,5].map(i => `<div class="${i <= (idea.effort||0) ? 'fill-effort' : ''}"></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================================
+// MODALS
+// ============================================================================
+function modal(html, large = false) {
+  const root = $('#modal-root');
+  root.innerHTML = `
+    <div class="modal-backdrop" id="backdrop">
+      <div class="modal ${large ? 'modal-lg' : ''}" onclick="event.stopPropagation()">${html}</div>
+    </div>
+  `;
+  $('#backdrop').addEventListener('click', closeModal);
+  document.addEventListener('keydown', escClose);
+}
+function closeModal() {
+  $('#modal-root').innerHTML = '';
+  document.removeEventListener('keydown', escClose);
+}
+function escClose(e) { if (e.key === 'Escape') closeModal(); }
+
+function openProjectModal(id = null) {
+  const p = id ? state.projects.find(x => x.id === id) : null;
+  modal(`
+    <div class="p-6">
+      <div class="serif italic text-2xl mb-5">${p ? 'Editar projeto' : 'Novo projeto'}</div>
+      <form id="project-form" class="space-y-3">
+        <div>
+          <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Nome</label>
+          <input class="input" id="p-name" required value="${escape(p?.name || '')}" placeholder="Ex: Clínicas Estética">
+        </div>
+        <div>
+          <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Descrição</label>
+          <textarea class="input" id="p-desc" rows="2" placeholder="Uma frase explicando o que é">${escape(p?.description || '')}</textarea>
+        </div>
+        <div>
+          <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Status</label>
+          <select class="input" id="p-status">
+            ${Object.entries(PROJECT_STATUS_LABELS).map(([v,l]) => `<option value="${v}" ${p?.status===v?'selected':''}>${l}</option>`).join('')}
+          </select>
+        </div>
+        <div class="flex gap-2 pt-3">
+          <button type="button" class="btn btn-secondary flex-1" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary flex-1">${p ? 'Salvar' : 'Criar'}</button>
+        </div>
+      </form>
+    </div>
+  `);
+  $('#p-name').focus();
+  $('#project-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      name: $('#p-name').value,
+      description: $('#p-desc').value,
+      status: $('#p-status').value,
+    };
+    if (p) await updateProject(p.id, payload);
+    else {
+      const newP = await createProject(payload);
+      if (newP) navigate('project/' + newP.id);
+    }
+    renderSidebar();
+    renderCurrentView();
+    closeModal();
+  });
+}
+
+async function confirmDeleteProject(id) {
+  if (!confirm('Apagar esse projeto? Todas as tarefas, notas, atualizações e membros vão junto. Não dá pra desfazer.')) return;
+  await deleteProject(id);
+  navigate('today');
+}
+
+async function openTaskModal(id = null, projectId = null) {
+  const t = id ? state.tasks.find(x => x.id === id) : null;
+  const pid = t?.project_id || projectId || state.currentProjectId || state.projects[0]?.id;
+
+  if (!pid) { toast('Crie um projeto primeiro', 'error'); return; }
+  if (!canEdit(pid) && !t) { toast('Você só pode visualizar esse projeto', 'error'); return; }
+
+  if (t) await loadComments(t.id);
+  const editable = canEdit(pid);
+
+  modal(`
+    <div class="p-6">
+      <div class="serif italic text-2xl mb-5">${t ? 'Tarefa' : 'Nova tarefa'}</div>
+      <form id="task-form" class="space-y-3">
+        <div>
+          <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Título</label>
+          <input class="input" id="t-title" required value="${escape(t?.title || '')}" placeholder="O que precisa ser feito" ${editable ? '' : 'disabled'}>
+        </div>
+        <div>
+          <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Descrição (markdown)</label>
+          <textarea class="input mono text-xs" id="t-desc" rows="3" placeholder="Detalhes (opcional)" ${editable ? '' : 'disabled'}>${escape(t?.description || '')}</textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Projeto</label>
+            <select class="input" id="t-project" required ${editable ? '' : 'disabled'}>
+              ${state.projects.map(p => `<option value="${p.id}" ${pid===p.id?'selected':''}>${escape(p.name)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Status</label>
+            <select class="input" id="t-status" ${editable ? '' : 'disabled'}>
+              ${Object.entries(STATUS_LABELS).map(([v,l]) => `<option value="${v}" ${(t?.status||'todo')===v?'selected':''}>${l}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Prioridade</label>
+            <select class="input" id="t-priority" ${editable ? '' : 'disabled'}>
+              ${Object.entries(PRIORITY_LABELS).map(([v,l]) => `<option value="${v}" ${(t?.priority||'medium')===v?'selected':''}>${l}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Prazo</label>
+            <input type="date" class="input" id="t-due" value="${t?.due_date || ''}" ${editable ? '' : 'disabled'}>
+          </div>
+        </div>
+        ${editable ? `
+          <div class="flex gap-2 pt-3">
+            ${t ? `<button type="button" class="btn btn-danger" onclick="confirmDeleteTask('${t.id}')">Apagar</button>` : ''}
+            <button type="button" class="btn btn-secondary ${t ? '' : 'flex-1'}" onclick="closeModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary flex-1">${t ? 'Salvar' : 'Criar'}</button>
+          </div>
+        ` : `
+          <div class="flex gap-2 pt-3">
+            <button type="button" class="btn btn-secondary flex-1" onclick="closeModal()">Fechar</button>
+          </div>
+        `}
+      </form>
+
+      ${t ? `
+        <div class="mt-6 pt-6 border-t" style="border-color: var(--border)">
+          <div class="text-[10px] uppercase tracking-wider mono mb-2" style="color: var(--text-dim)">Anexos</div>
+          <div id="task-atts" class="flex flex-wrap gap-2 mb-2"></div>
+          ${editable ? `
+            <div class="drop-zone" id="task-drop">📎 Clique ou arraste arquivos aqui</div>
+            <input type="file" id="task-file-input" class="hidden" multiple>
+          ` : ''}
+
+          <div class="text-[10px] uppercase tracking-wider mono mt-5 mb-2" style="color: var(--text-dim)">Comentários</div>
+          <div id="task-comments"></div>
+          ${editable ? `
+            <form id="comment-form" class="mt-3 flex gap-2">
+              <input class="input" id="c-content" placeholder="Adicionar comentário..." required>
+              <button type="submit" class="btn btn-primary">Enviar</button>
+            </form>
+          ` : ''}
+        </div>
+      ` : ''}
+    </div>
+  `, true);
+
+  if (editable) $('#t-title').focus();
+
+  if (editable) {
+    $('#task-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        title: $('#t-title').value,
+        description: $('#t-desc').value || null,
+        project_id: $('#t-project').value,
+        status: $('#t-status').value,
+        priority: $('#t-priority').value,
+        due_date: $('#t-due').value || null,
+        assignee_id: state.user.id,
+      };
+      if (t) await updateTask(t.id, payload);
+      else await createTask(payload);
+      renderCurrentView();
+      closeModal();
+    });
+  }
+
+  if (t) {
+    renderTaskAttachments(t.id);
+    renderTaskComments(t.id, editable);
+    if (editable) {
+      setupDropZone($('#task-drop'), $('#task-file-input'), async (files) => {
+        for (const f of files) {
+          await uploadFile(f, { task_id: t.id });
+        }
+        await loadComments(t.id);
+        renderTaskAttachments(t.id);
+      });
+
+      $('#comment-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const content = $('#c-content').value.trim();
+        if (!content) return;
+        await createComment(t.id, content);
+        $('#c-content').value = '';
+        renderTaskComments(t.id, editable);
+      });
+    }
+  }
+}
+
+function renderTaskAttachments(taskId) {
+  const el = $('#task-atts');
+  if (!el) return;
+  if (!state.taskAttachments || state.taskAttachments.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = state.taskAttachments.map(a => `
+    <div class="flex items-center gap-1">
+      <a href="${attachmentUrl(a.file_path)}" target="_blank" class="file-chip">
+        <span>${fileIcon(a.mime_type)}</span>
+        <span class="file-name">${escape(a.file_name)}</span>
+        <span class="file-size">${formatBytes(a.file_size)}</span>
+      </a>
+      ${a.uploaded_by === state.user.id ? `<button class="btn-ghost p-1 rounded" onclick="removeTaskAtt('${a.id}', '${taskId}')" title="Remover"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>` : ''}
+    </div>
+  `).join('');
+}
+
+async function removeTaskAtt(attId, taskId) {
+  const att = state.taskAttachments.find(a => a.id === attId);
+  if (!att) return;
+  await deleteAttachment(att);
+  await loadComments(taskId);
+  renderTaskAttachments(taskId);
+}
+
+function renderTaskComments(taskId, editable) {
+  const el = $('#task-comments');
+  if (!el) return;
+  if (state.comments.length === 0) {
+    el.innerHTML = `<div class="text-xs py-2" style="color: var(--text-dim)">Nenhum comentário ainda.</div>`;
+    return;
+  }
+  el.innerHTML = state.comments.map(c => `
+    <div class="comment">
+      <div class="comment-avatar">${getInitials(c.profiles?.full_name || 'U')}</div>
+      <div class="comment-body">
+        <div class="comment-header">
+          <span class="comment-author">${escape(c.profiles?.full_name || 'Usuário')}</span>
+          <span class="comment-time">${formatRelative(c.created_at)}</span>
+          ${c.author_id === state.user.id && editable ? `<button class="ml-auto btn-ghost p-0.5 rounded text-xs" onclick="removeComment('${c.id}', '${taskId}', ${editable})" style="color: var(--text-dim)">×</button>` : ''}
+        </div>
+        <div class="md text-sm">${renderMarkdown(c.content)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function removeComment(id, taskId, editable) {
+  await deleteComment(id);
+  renderTaskComments(taskId, editable);
+}
+
+async function confirmDeleteTask(id) {
+  if (!confirm('Apagar essa tarefa? Comentários e anexos também serão removidos.')) return;
+  await deleteTask(id);
+  renderCurrentView();
+  closeModal();
+}
+
+function openIdeaModal(id = null) {
+  const idea = id ? state.ideas.find(x => x.id === id) : null;
+  modal(`
+    <div class="p-6">
+      <div class="serif italic text-2xl mb-5">${idea ? 'Editar ideia' : 'Nova ideia'}</div>
+      <form id="idea-form" class="space-y-3">
+        <div>
+          <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Título</label>
+          <input class="input" id="i-title" required value="${escape(idea?.title || '')}" placeholder="A ideia em uma frase">
+        </div>
+        <div>
+          <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Descrição</label>
+          <textarea class="input" id="i-desc" rows="3" placeholder="Por que importa, quem é o cliente, etc.">${escape(idea?.description || '')}</textarea>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Impacto (1-5)</label>
+            <select class="input" id="i-impact">
+              ${[1,2,3,4,5].map(n => `<option value="${n}" ${(idea?.impact||3)===n?'selected':''}>${n}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Esforço (1-5)</label>
+            <select class="input" id="i-effort">
+              ${[1,2,3,4,5].map(n => `<option value="${n}" ${(idea?.effort||3)===n?'selected':''}>${n}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Status</label>
+            <select class="input" id="i-status">
+              <option value="parked" ${(idea?.status||'parked')==='parked'?'selected':''}>Estacionada</option>
+              <option value="considering" ${idea?.status==='considering'?'selected':''}>Considerando</option>
+              <option value="promoted" ${idea?.status==='promoted'?'selected':''}>Virou projeto</option>
+              <option value="rejected" ${idea?.status==='rejected'?'selected':''}>Descartada</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex gap-2 pt-3">
+          ${idea ? `<button type="button" class="btn btn-danger" onclick="confirmDeleteIdea('${idea.id}')">Apagar</button>` : ''}
+          <button type="button" class="btn btn-secondary ${idea ? '' : 'flex-1'}" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary flex-1">${idea ? 'Salvar' : 'Criar'}</button>
+        </div>
+      </form>
+    </div>
+  `);
+  $('#i-title').focus();
+  $('#idea-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      title: $('#i-title').value,
+      description: $('#i-desc').value || null,
+      impact: parseInt($('#i-impact').value),
+      effort: parseInt($('#i-effort').value),
+      status: $('#i-status').value,
+    };
+    if (idea) await updateIdea(idea.id, payload);
+    else await createIdea(payload);
+    renderCurrentView();
+    closeModal();
+  });
+}
+
+async function confirmDeleteIdea(id) {
+  if (!confirm('Apagar essa ideia?')) return;
+  await deleteIdea(id);
+  renderCurrentView();
+  closeModal();
+}
+
+function openNoteModal(id = null, projectId = null) {
+  const n = id ? state.notes.find(x => x.id === id) : null;
+  const pid = projectId || n?.project_id;
+  const editable = canEdit(pid);
+
+  modal(`
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-5">
+        <div class="serif italic text-2xl">${n ? (editable ? 'Editar nota' : 'Nota') : 'Nova nota'}</div>
+        <div class="flex gap-1">
+          <button id="md-edit" class="btn btn-secondary text-xs" style="background: var(--surface-hover)">Editar</button>
+          <button id="md-preview" class="btn btn-ghost text-xs">Preview</button>
+        </div>
+      </div>
+      <form id="note-form" class="space-y-3">
+        <div>
+          <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Título</label>
+          <input class="input" id="n-title" required value="${escape(n?.title || '')}" ${editable ? '' : 'disabled'}>
+        </div>
+        <div>
+          <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Categoria</label>
+          <select class="input" id="n-cat" ${editable ? '' : 'disabled'}>
+            ${Object.entries(NOTE_CATEGORIES).map(([v,l]) => `<option value="${v}" ${(n?.category||'general')===v?'selected':''}>${l}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Conteúdo (markdown)</label>
+          <textarea class="input mono text-xs" id="n-content" rows="12" placeholder="## Decisão&#10;&#10;Escolhemos X em vez de Y porque..." ${editable ? '' : 'disabled'}>${escape(n?.content || '')}</textarea>
+          <div id="n-preview" class="hidden card p-4 md mt-2" style="min-height: 200px"></div>
+        </div>
+        <div class="flex gap-2 pt-3">
+          ${n && editable ? `<button type="button" class="btn btn-danger" onclick="confirmDeleteNote('${n.id}')">Apagar</button>` : ''}
+          <button type="button" class="btn btn-secondary ${n && editable ? '' : 'flex-1'}" onclick="closeModal()">${editable ? 'Cancelar' : 'Fechar'}</button>
+          ${editable ? `<button type="submit" class="btn btn-primary flex-1">${n ? 'Salvar' : 'Criar'}</button>` : ''}
+        </div>
+      </form>
+    </div>
+  `, true);
+
+  if (editable) $('#n-title').focus();
+  const ta = $('#n-content');
+  const preview = $('#n-preview');
+  $('#md-preview').addEventListener('click', () => {
+    preview.innerHTML = renderMarkdown(ta.value) || '<span style="color: var(--text-dim)">Nada pra mostrar</span>';
+    ta.classList.add('hidden');
+    preview.classList.remove('hidden');
+    $('#md-preview').style.background = 'var(--surface-hover)';
+    $('#md-edit').style.background = 'transparent';
+  });
+  $('#md-edit').addEventListener('click', () => {
+    preview.classList.add('hidden');
+    ta.classList.remove('hidden');
+    $('#md-edit').style.background = 'var(--surface-hover)';
+    $('#md-preview').style.background = 'transparent';
+  });
+
+  if (editable) {
+    $('#note-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        title: $('#n-title').value,
+        category: $('#n-cat').value,
+        content: $('#n-content').value,
+        project_id: pid,
+      };
+      if (n) await updateNote(n.id, payload);
+      else await createNote(payload);
+      renderCurrentView();
+      closeModal();
+    });
+  }
+}
+
+async function confirmDeleteNote(id) {
+  if (!confirm('Apagar essa nota?')) return;
+  await deleteNote(id);
+  renderCurrentView();
+  closeModal();
+}
+
+async function openUpdateModal(id = null, projectId = null) {
+  const u = id ? state.updates.find(x => x.id === id) : null;
+  const pid = projectId || u?.project_id;
+  if (!canEdit(pid)) { toast('Você só pode visualizar esse projeto', 'error'); return; }
+
+  if (u) {
+    const { data: atts } = await sb.from('attachments').select('*').eq('update_id', u.id);
+    state.attachments = (state.attachments || []).filter(a => a.update_id !== u.id).concat(atts || []);
+  }
+  const projectTasks = state.tasks.filter(t => t.project_id === pid);
+  const linkedIds = new Set(u?.linked_task_ids || []);
+
+  modal(`
+    <div class="p-6">
+      <div class="serif italic text-2xl mb-5">${u ? 'Editar atualização' : 'Nova atualização'}</div>
+      <form id="update-form" class="space-y-3">
+        <div>
+          <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Título</label>
+          <input class="input" id="u-title" required value="${escape(u?.title || '')}" placeholder="Ex: Implementação completa de followup">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Tipo</label>
+            <select class="input" id="u-type">
+              ${Object.entries(UPDATE_TYPE_LABELS).map(([v,l]) => `<option value="${v}" ${(u?.update_type||'feature')===v?'selected':''}>${l}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Data</label>
+            <input type="date" class="input" id="u-date" value="${u?.released_at || todayISO()}" required>
+          </div>
+        </div>
+        <div>
+          <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Descrição (markdown)</label>
+          <textarea class="input mono text-xs" id="u-desc" rows="6" placeholder="O que foi feito, decisões, contexto...">${escape(u?.description || '')}</textarea>
+        </div>
+
+        ${projectTasks.length > 0 ? `
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Vincular tarefas (opcional)</label>
+            <div class="card p-2 max-h-40 overflow-y-auto">
+              ${projectTasks.map(t => `
+                <label class="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-black/20 text-xs">
+                  <input type="checkbox" name="link-task" value="${t.id}" ${linkedIds.has(t.id) ? 'checked' : ''}>
+                  <span>${escape(t.title)}</span>
+                  <span class="ml-auto text-[10px]" style="color: var(--text-dim)">${STATUS_LABELS[t.status]}</span>
+                </label>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        ${u ? `
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color: var(--text-muted)">Anexos</label>
+            <div id="update-atts" class="flex flex-wrap gap-2 mb-2"></div>
+            <div class="drop-zone" id="update-drop">📎 Clique ou arraste PDFs/arquivos aqui</div>
+            <input type="file" id="update-file-input" class="hidden" multiple>
+          </div>
+        ` : `
+          <div class="text-xs px-3 py-2 rounded" style="background: var(--bg-elev); color: var(--text-muted); border: 1px solid var(--border)">
+            💡 Salve a atualização primeiro pra anexar arquivos
+          </div>
+        `}
+
+        <div class="flex gap-2 pt-3">
+          ${u ? `<button type="button" class="btn btn-danger" onclick="confirmDeleteUpdate('${u.id}')">Apagar</button>` : ''}
+          <button type="button" class="btn btn-secondary ${u ? '' : 'flex-1'}" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary flex-1">${u ? 'Salvar' : 'Criar'}</button>
+        </div>
+      </form>
+    </div>
+  `, true);
+
+  $('#u-title').focus();
+
+  if (u) {
+    renderUpdateAttachments(u.id);
+    setupDropZone($('#update-drop'), $('#update-file-input'), async (files) => {
+      for (const f of files) {
+        await uploadFile(f, { update_id: u.id });
+      }
+      const { data: atts } = await sb.from('attachments').select('*').eq('update_id', u.id);
+      state.attachments = (state.attachments || []).filter(a => a.update_id !== u.id).concat(atts || []);
+      renderUpdateAttachments(u.id);
+    });
+  }
+
+  $('#update-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const linkedTaskIds = Array.from(document.querySelectorAll('input[name="link-task"]:checked')).map(el => el.value);
+    const payload = {
+      project_id: pid,
+      title: $('#u-title').value,
+      description: $('#u-desc').value || null,
+      update_type: $('#u-type').value,
+      released_at: $('#u-date').value,
+      linked_task_ids: linkedTaskIds,
+    };
+    if (u) {
+      await updateUpdate(u.id, payload);
+    } else {
+      const newU = await createUpdate(payload);
+      if (newU) {
+        await loadUpdates(pid);
+        renderCurrentView();
+        closeModal();
+        setTimeout(() => openUpdateModal(newU.id, pid), 100);
+        return;
+      }
+    }
+    await loadUpdates(pid);
+    renderCurrentView();
+    closeModal();
+  });
+}
+
+function renderUpdateAttachments(updateId) {
+  const el = $('#update-atts');
+  if (!el) return;
+  const atts = (state.attachments || []).filter(a => a.update_id === updateId);
+  if (atts.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = atts.map(a => `
+    <div class="flex items-center gap-1">
+      <a href="${attachmentUrl(a.file_path)}" target="_blank" class="file-chip">
+        <span>${fileIcon(a.mime_type)}</span>
+        <span class="file-name">${escape(a.file_name)}</span>
+        <span class="file-size">${formatBytes(a.file_size)}</span>
+      </a>
+      ${a.uploaded_by === state.user.id ? `<button type="button" class="btn-ghost p-1 rounded" onclick="removeUpdateAtt('${a.id}', '${updateId}')" title="Remover"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>` : ''}
+    </div>
+  `).join('');
+}
+
+async function removeUpdateAtt(attId, updateId) {
+  const att = state.attachments.find(a => a.id === attId);
+  if (!att) return;
+  await deleteAttachment(att);
+  state.attachments = state.attachments.filter(a => a.id !== attId);
+  renderUpdateAttachments(updateId);
+}
+
+async function confirmDeleteUpdate(id) {
+  if (!confirm('Apagar essa atualização? Os anexos também serão removidos.')) return;
+  const atts = state.attachments.filter(a => a.update_id === id);
+  for (const a of atts) {
+    await sb.storage.from(BUCKET).remove([a.file_path]);
+  }
+  await deleteUpdate(id);
+  renderCurrentView();
+  closeModal();
+}
+
+// Drop zone
+function setupDropZone(zone, fileInput, onFiles) {
+  if (!zone) return;
+  zone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', async (e) => {
+    if (e.target.files.length > 0) {
+      const originalText = zone.textContent;
+      zone.innerHTML = '<span class="spinner"></span> Enviando...';
+      await onFiles(Array.from(e.target.files));
+      zone.textContent = originalText;
+      fileInput.value = '';
+      toast('Arquivos enviados', 'success');
+    }
+  });
+  zone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    zone.classList.add('dragover');
+  });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) {
+      const originalText = zone.textContent;
+      zone.innerHTML = '<span class="spinner"></span> Enviando...';
+      await onFiles(Array.from(e.dataTransfer.files));
+      zone.textContent = originalText;
+      toast('Arquivos enviados', 'success');
+    }
+  });
+}
+
+// CMD+K
+let cmdkSelectedIndex = 0;
+let cmdkResults = [];
+
+function openCmdK() {
+  const root = $('#cmdk-root');
+  root.innerHTML = `
+    <div class="cmdk-backdrop" id="cmdk-backdrop">
+      <div class="cmdk" onclick="event.stopPropagation()">
+        <input class="cmdk-input" id="cmdk-input" placeholder="Buscar projetos, tarefas, notas, ideias, atualizações..." autocomplete="off">
+        <div class="cmdk-results" id="cmdk-results"></div>
+        <div class="cmdk-hint">
+          <span><kbd>↑↓</kbd> navegar</span>
+          <span><kbd>↵</kbd> abrir</span>
+          <span><kbd>esc</kbd> fechar</span>
+        </div>
+      </div>
+    </div>
+  `;
+  $('#cmdk-backdrop').addEventListener('click', closeCmdK);
+  const input = $('#cmdk-input');
+  input.focus();
+  input.addEventListener('input', renderCmdKResults);
+  input.addEventListener('keydown', cmdkKeyDown);
+  renderCmdKResults();
+}
+
+function closeCmdK() {
+  $('#cmdk-root').innerHTML = '';
+}
+
+let cmdkIndex = { allNotes: [], allUpdates: [] };
+
+async function refreshCmdKIndex() {
+  const { data: allNotes } = await sb.from('notes').select('id, title, project_id, content, category');
+  const { data: allUpdates } = await sb.from('project_updates').select('id, title, project_id, description, update_type');
+  cmdkIndex = { allNotes: allNotes || [], allUpdates: allUpdates || [] };
+}
+
+function renderCmdKResults() {
+  const q = $('#cmdk-input').value.toLowerCase().trim();
+  const root = $('#cmdk-results');
+
+  if (!q) {
+    const items = state.projects.slice(0, 6).map(p => ({
+      type: 'project', id: p.id, label: p.name, meta: 'Projeto', color: p.color
+    }));
+    cmdkResults = items;
+    root.innerHTML = items.length === 0 ? `<div class="cmdk-empty">Comece a digitar para buscar</div>` : `
+      <div class="cmdk-section-label">Projetos</div>
+      ${items.map((it, i) => cmdkItemHTML(it, i)).join('')}
+    `;
+    cmdkSelectedIndex = 0;
+    highlightCmdK();
+    attachCmdKListeners();
+    return;
+  }
+
+  const results = [];
+  state.projects.forEach(p => {
+    if (p.name.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q)) {
+      results.push({ type: 'project', id: p.id, label: p.name, meta: 'Projeto', color: p.color });
+    }
+  });
+  state.tasks.forEach(t => {
+    if (t.title.toLowerCase().includes(q) || t.description?.toLowerCase().includes(q)) {
+      const proj = state.projects.find(p => p.id === t.project_id);
+      results.push({ type: 'task', id: t.id, label: t.title, meta: proj?.name || 'Tarefa', color: proj?.color });
+    }
+  });
+  state.ideas.forEach(i => {
+    if (i.title.toLowerCase().includes(q) || i.description?.toLowerCase().includes(q)) {
+      results.push({ type: 'idea', id: i.id, label: i.title, meta: 'Ideia' });
+    }
+  });
+  cmdkIndex.allNotes.forEach(n => {
+    if (n.title.toLowerCase().includes(q) || n.content?.toLowerCase().includes(q)) {
+      const proj = state.projects.find(p => p.id === n.project_id);
+      results.push({ type: 'note', id: n.id, projectId: n.project_id, label: n.title, meta: `Nota · ${proj?.name || ''}`, color: proj?.color });
+    }
+  });
+  cmdkIndex.allUpdates.forEach(u => {
+    if (u.title.toLowerCase().includes(q) || u.description?.toLowerCase().includes(q)) {
+      const proj = state.projects.find(p => p.id === u.project_id);
+      results.push({ type: 'update', id: u.id, projectId: u.project_id, label: u.title, meta: `Atualização · ${proj?.name || ''}`, color: proj?.color });
+    }
+  });
+
+  cmdkResults = results.slice(0, 30);
+  cmdkSelectedIndex = 0;
+
+  if (cmdkResults.length === 0) {
+    root.innerHTML = `<div class="cmdk-empty">Nada encontrado pra "${escape(q)}"</div>`;
+    return;
+  }
+
+  const grouped = {};
+  cmdkResults.forEach((r, idx) => {
+    const k = r.type;
+    if (!grouped[k]) grouped[k] = [];
+    grouped[k].push({ ...r, _idx: idx });
+  });
+  const labels = { project: 'Projetos', task: 'Tarefas', idea: 'Ideias', note: 'Notas', update: 'Atualizações' };
+  root.innerHTML = Object.entries(grouped).map(([k, items]) => `
+    <div class="cmdk-section-label">${labels[k]}</div>
+    ${items.map(it => cmdkItemHTML(it, it._idx)).join('')}
+  `).join('');
+  highlightCmdK();
+  attachCmdKListeners();
+}
+
+function cmdkItemHTML(item, idx) {
+  const icon = { project: '📁', task: '✓', idea: '💡', note: '📝', update: '🚀' }[item.type] || '·';
+  return `
+    <div class="cmdk-item" data-idx="${idx}">
+      ${item.color ? `<span class="proj-dot" style="background: ${item.color}"></span>` : `<span style="font-size: 14px">${icon}</span>`}
+      <span class="truncate">${escape(item.label)}</span>
+      <span class="cmdk-item-meta">${escape(item.meta)}</span>
+    </div>
+  `;
+}
+
+function highlightCmdK() {
+  document.querySelectorAll('.cmdk-item').forEach((el, i) => {
+    el.classList.toggle('selected', parseInt(el.dataset.idx) === cmdkSelectedIndex);
+  });
+}
+
+function attachCmdKListeners() {
+  document.querySelectorAll('.cmdk-item').forEach(el => {
+    el.addEventListener('click', () => {
+      cmdkSelectedIndex = parseInt(el.dataset.idx);
+      cmdkOpen();
+    });
+    el.addEventListener('mouseenter', () => {
+      cmdkSelectedIndex = parseInt(el.dataset.idx);
+      highlightCmdK();
+    });
+  });
+}
+
+function cmdkKeyDown(e) {
+  if (e.key === 'Escape') { e.preventDefault(); closeCmdK(); }
+  else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    cmdkSelectedIndex = Math.min(cmdkSelectedIndex + 1, cmdkResults.length - 1);
+    highlightCmdK();
+    document.querySelector('.cmdk-item.selected')?.scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    cmdkSelectedIndex = Math.max(cmdkSelectedIndex - 1, 0);
+    highlightCmdK();
+    document.querySelector('.cmdk-item.selected')?.scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    cmdkOpen();
+  }
+}
+
+function cmdkOpen() {
+  const item = cmdkResults[cmdkSelectedIndex];
+  if (!item) return;
+  closeCmdK();
+  setTimeout(() => {
+    if (item.type === 'project') navigate(`project/${item.id}`);
+    else if (item.type === 'task') openTaskModal(item.id);
+    else if (item.type === 'idea') openIdeaModal(item.id);
+    else if (item.type === 'note') {
+      navigate(`project/${item.projectId}/notes`);
+      setTimeout(() => openNoteModal(item.id, item.projectId), 200);
+    } else if (item.type === 'update') {
+      navigate(`project/${item.projectId}/updates`);
+      setTimeout(() => openUpdateModal(item.id, item.projectId), 200);
+    }
+  }, 50);
+}
+
+$('#btn-cmdk').addEventListener('click', async () => {
+  await refreshCmdKIndex();
+  openCmdK();
+});
+
+$('#btn-new-project').addEventListener('click', () => openProjectModal());
+$('#btn-quick-add').addEventListener('click', () => openTaskModal());
+
+document.addEventListener('keydown', async (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    await refreshCmdKIndex();
+    openCmdK();
+    return;
+  }
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (document.querySelector('.modal-backdrop') || document.querySelector('.cmdk-backdrop')) return;
+  if (e.key === 'c' || e.key === 'C') {
+    e.preventDefault();
+    openTaskModal();
+  } else if (e.key === 'g') {
+    document.addEventListener('keydown', (e2) => {
+      if (e2.key === 't') navigate('today');
+      if (e2.key === 'i') navigate('ideas');
+    }, { once: true });
+  }
+});
+
+// Expose
+window.openProjectModal = openProjectModal;
+window.openTaskModal = openTaskModal;
+window.openIdeaModal = openIdeaModal;
+window.openNoteModal = openNoteModal;
+window.openUpdateModal = openUpdateModal;
+window.confirmDeleteProject = confirmDeleteProject;
+window.confirmDeleteTask = confirmDeleteTask;
+window.confirmDeleteIdea = confirmDeleteIdea;
+window.confirmDeleteNote = confirmDeleteNote;
+window.confirmDeleteUpdate = confirmDeleteUpdate;
+window.confirmLeaveProject = confirmLeaveProject;
+window.removeTaskAtt = removeTaskAtt;
+window.removeUpdateAtt = removeUpdateAtt;
+window.removeComment = removeComment;
+window.closeModal = closeModal;
+window.handleRoleChange = handleRoleChange;
+window.handleRemoveMember = handleRemoveMember;
+window.handleCancelInvite = handleCancelInvite;
+window.navigate = navigate;
+
+init();
+</script>
+</body>
+</html>
